@@ -1,6 +1,7 @@
 import React, { ReactNode, useContext, useEffect, useState } from 'react'
 import { auth } from './../../firebase';
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, updateEmail, updatePassword, User } from 'firebase/auth';
+import { Navigate } from 'react-router-dom';
 
 
 const AuthContext=React.createContext(undefined);
@@ -11,7 +12,7 @@ export function useAuth(){
 
 export function AuthProvider({ children }:{children:ReactNode}) {
     const [currentUser, setCurrentUser]=useState<User | null | undefined>()
-    const [loading, setLoading]=useState(false)
+    const [loading, setLoading]=useState(true)
 
     function signup(email:string, password:string){
         return createUserWithEmailAndPassword(auth,email,password)
@@ -29,6 +30,14 @@ export function AuthProvider({ children }:{children:ReactNode}) {
         return sendPasswordResetEmail(auth, email)
     }
 
+    function emailUpdate(email:string){
+        return updateEmail(auth.currentUser!,email)
+    }
+
+    function passwordUpdate(password:string){
+        return updatePassword(auth.currentUser!,password);
+    }
+
     useEffect(()=>{
         const unsubscribe=auth.onAuthStateChanged((user:User | null)=>{
             setCurrentUser(user)
@@ -36,7 +45,7 @@ export function AuthProvider({ children }:{children:ReactNode}) {
         })
 
         return unsubscribe
-    })
+    },[])
 
 
     const value={
@@ -44,7 +53,9 @@ export function AuthProvider({ children }:{children:ReactNode}) {
         signup,
         login,
         logout,
-        resetPassword
+        resetPassword,
+        emailUpdate,
+        passwordUpdate
     }
     return(
         <AuthContext.Provider value={value}>
